@@ -9,6 +9,7 @@
 import axios from "axios";
 import * as t from 'io-ts';
 import { log, warn } from "./log";
+import fs from 'fs';
 
 function intToIP(int: number) {
     var part1 = int & 255;
@@ -32,7 +33,12 @@ const codec = t.type({
 
 export async function fetchConfig(src: string) {
     log('Fetching "' + src + '"');
-    let config = (await axios.get(src)).data;
+    var config: any
+    if (src.startsWith("file://")) {
+        config = JSON.parse(fs.readFileSync(src.slice(7)).toString())
+    } else {
+        config = (await axios.get(src)).data;
+    }
     if (!codec.is(config)) {
         warn(config);
         throw Error('Invalid config');
